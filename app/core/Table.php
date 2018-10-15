@@ -93,7 +93,7 @@ class Table
 			return false;	
 		}
 
-		$condition = $this->conditions($where);	
+		$condition = $this->conditions($where, $table);
 		list($conditions, $values) = $condition;
 	
 		$set = '';

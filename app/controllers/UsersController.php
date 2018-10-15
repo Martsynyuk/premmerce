@@ -18,11 +18,13 @@ class UsersController extends Controller
 		];	
 	}
 
-	public function actionCreate() {
+	public function actionCreate()
+    {
         $this->set('action', 'create');
+        $this->set('countries', $this->Countries->getCounties());
 
         if(!empty($_POST)) {
-            if($this->Users->validate('validate', $_POST) && $this->Users->savePost()) {
+            if($this->Users->validate('validate', $_POST) && $this->Users->saveUser()) {
                 Redirect::to('/users/index');
             } else {
                 $this->set('error', $this->Users->getErrors());
@@ -32,17 +34,18 @@ class UsersController extends Controller
 
 	public function actionUpdate($id)
 	{
-		if(!isset($id[0])) {
+		if(!isset($id[0]) || !$this->Users->isUserExists($id[0])) {
 			Redirect::to('/users/index');
 		}
 		
 		$this->set('action', 'update');
-		$this->set('id', $id[0]);
+		$this->set('user', $this->Users->getUser($id[0]), $this->getJoin($this->Countries, 'country', $this->Users,  'id', 'country_id'));
+        $this->set('countries', $this->Countries->getCounties());
 		
 		if(!empty($_POST)) {
-			if($this->Users->validate('validate', $_POST) && !empty($this->Users->isUserPost($id[0]))) {
+			if($this->Users->validate('validate', $_POST)) {
 				$this->Users->saveUser($id[0]);
-				Redirect::to('/post/index');
+				Redirect::to('/users/index');
 			} else {
 				$this->set('user', $_POST);
 				$this->set('error', $this->Users->getErrors());
@@ -60,7 +63,8 @@ class UsersController extends Controller
         );
 	}
 
-	protected function getJoin($joinModel, $getField, $model, $condition, $joinCondition) {
+	protected function getJoin($joinModel, $getField, $model, $condition, $joinCondition)
+    {
 	    $join = [
             'field' => $getField,
 	        'table' => [
@@ -75,17 +79,15 @@ class UsersController extends Controller
 	    return $join;
     }
 
-	///////
-	
-	public function actionDelete($id)
-	{
-		if($this->Post->isUserPost($id[0])) {
-			$this->Post->deletePost($id[0]);
-			Redirect::to('/post/my');
-		} else {
-			Redirect::to('/user/logout');
-		}
-	}
+    public function actionDelete($id)
+    {
+        if(!isset($id[0]) || !$this->Users->isUserExists($id[0])) {
+            Redirect::to('/users/index');
+        }
+
+        $this->Users->deleteUser($id[0]);
+        Redirect::to('/users/index');
+    }
 
 	public function actionError($error = '404')
 	{

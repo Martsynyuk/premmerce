@@ -8,5 +8,8 @@ class Countries extends Model
 				],
 	];
 
-
+    public function getCounties()
+    {
+        return$this->getAll($this->tableName);
+    }
 }
